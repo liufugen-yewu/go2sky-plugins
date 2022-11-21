@@ -298,6 +298,18 @@ func (r *kafkaReporter) Close() {
 	}
 }
 
+//循环处理上报信息的结果信息，以实现kafka单次连接多次上报。
+func (r *kafkaReporter) readBackMessage() {
+	for {
+		select {
+		case <-r.producer.Successes():
+		case err := <- r.producer.Errors():
+			r.logger.Fatalf( "kafkaReport readBackMessage error detail is %s",err)
+		default:
+		}
+	}
+}
+
 func buildOSInfo() (props []*commonv3.KeyStringValuePair) {
 	processNo := tool.ProcessNo()
 	if processNo != "" {
